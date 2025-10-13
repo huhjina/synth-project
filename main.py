@@ -4,7 +4,7 @@ import re
 from bs4 import BeautifulSoup
 import math
 
-
+seen_post_ids = set()
 url = "https://www.norduserforum.com/index.php"
 response = requests.get(url)
 soup = BeautifulSoup(response.content, 'html.parser')
@@ -85,20 +85,22 @@ for link in links:
                         title = f"RE: {soup.find('h2', class_='topic-title').get_text(strip=True)}" if soup.find('h2', class_='topic-title') else ''
                     else:
                         title = soup.find('h2', class_='topic-title').get_text(strip=True) if soup.find('h2', class_='topic-title') else ''
-                    post_data.append({
-                        'unique_id': unique_id,
-                        'forum_id': forum_id,
-                        'thread_id': thread_id,
-                        'post_id': post_id,
-                        'title': title,
-                        'unique_user_id': unique_user_id,
-                        'username': username,
-                        'datetime': datetime,
-                        'is_it_a_reply': is_it_a_reply,
-                        'reply_to': reply_to,
-                        'post_content': post_div.find('div', class_='content').get_text(strip=True) if post_div and post_div.find('div', class_='content') else '',
-                        'post_link': post_link
-                    })
-                    unique_id += 1
+                    if post_id not in seen_post_ids:
+                        seen_post_ids.add(post_id)
+                        post_data.append({
+                            'unique_id': unique_id,
+                            'forum_id': forum_id,
+                            'thread_id': thread_id,
+                            'post_id': post_id,
+                            'title': title,
+                            'unique_user_id': unique_user_id,
+                            'username': username,
+                            'datetime': datetime,
+                            'is_it_a_reply': is_it_a_reply,
+                            'reply_to': reply_to,
+                            'post_content': post_div.find('div', class_='content').get_text(strip=True) if post_div and post_div.find('div', class_='content') else '',
+                            'post_link': post_link
+                        })
+                        unique_id += 1
     df = pd.DataFrame(post_data)
     df.to_csv(f'norduserforum_forum_{topic_name}_data.csv', index=False)
