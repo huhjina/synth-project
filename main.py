@@ -10,7 +10,7 @@ response = requests.get(url)
 soup = BeautifulSoup(response.content, 'html.parser')
 unique_id = 1
 links = soup.find_all('a', class_= 'forumtitle')
-for link in links:
+for link in links[13:]:
     post_data = []
     href = re.sub(r'&sid=[^&]+', '', link['href'])
     href = href.lstrip('.')
@@ -103,4 +103,5 @@ for link in links:
                         })
                         unique_id += 1
     df = pd.DataFrame(post_data)
-    df.to_csv(f'norduserforum_forum_{topic_name}_data.csv', index=False)
+    safe_topic_name = re.sub(r'[^A-Za-z0-9_]+', '_', topic_name)
+    df.to_csv(f'norduserforum_forum_{safe_topic_name}_data.csv', index=False)
